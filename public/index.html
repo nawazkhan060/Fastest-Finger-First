@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fastest Finger First - Play Now!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container scale-up" style="max-width: 500px;">
+    <div class="logo-container">
+      <div class="logo-icon">⚡</div>
+      <h1 class="logo-title">FASTEST FINGER</h1>
+      <h2 class="logo-title" style="font-size: 24px; margin-top: -5px;">FIRST</h2>
+      <div style="font-size: 14px; font-weight: 600; color: var(--color-gold); margin-top: 10px; letter-spacing: 1px; text-shadow: 0 0 5px var(--color-gold-glow);">
+        Developed By Nawaz Khan
+      </div>
+    </div>
+
+    <!-- Join Form -->
+    <div id="join-section">
+      <div class="form-group">
+        <label for="player-name">Your Name</label>
+        <input type="text" id="player-name" placeholder="Enter your name" maxlength="15">
+      </div>
+      
+      <div class="form-group">
+        <label for="game-code">Game Code</label>
+        <input type="text" id="game-code" placeholder="4-Digit Code" maxlength="4" style="text-transform: uppercase;">
+      </div>
+
+      <button id="btn-join" class="btn btn-primary pulse-glow">Join Game</button>
+      
+      <div style="text-align: center; margin-top: 25px; color: var(--text-secondary);">
+        <span>or</span>
+      </div>
+      
+      <button id="btn-goto-host" class="btn btn-secondary" style="margin-top: 15px;">Create Game as Host</button>
+    </div>
+
+    <!-- How to Play Guide -->
+    <div class="guide-box">
+      <h3>How to Play ⚡</h3>
+      <div class="guide-step">
+        <span>📋</span>
+        <div><strong>Step 1:</strong> Enter your name and the 4-digit code provided by the Host to join.</div>
+      </div>
+      <div class="guide-step">
+        <span>⏱️</span>
+        <div><strong>Step 2:</strong> Once the host starts, a 15-second timer begins ticking.</div>
+      </div>
+      <div class="guide-step">
+        <span>🖱️</span>
+        <div><strong>Step 3:</strong> Tap option buttons in the correct sequence to order them (1st to 4th).</div>
+      </div>
+      <div class="guide-step">
+        <span>🥇</span>
+        <div><strong>Step 4:</strong> Submit! The fastest player with the correct order ranks #1!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="credits-footer">
+    Developed By <strong>Nawaz Khan</strong>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.getElementById('btn-goto-host').addEventListener('click', () => {
+      window.location.href = '/host.html';
+    });
+
+    document.getElementById('btn-join').addEventListener('click', () => {
+      const nameInput = document.getElementById('player-name').value.trim();
+      const codeInput = document.getElementById('game-code').value.trim().toUpperCase();
+
+      if (!nameInput) {
+        alert('Please enter your name.');
+        return;
+      }
+      if (!codeInput || codeInput.length !== 4) {
+        alert('Please enter a valid 4-digit game code.');
+        return;
+      }
+
+      // Redirect to player page with query parameters
+      window.location.href = `/player.html?code=${encodeURIComponent(codeInput)}&name=${encodeURIComponent(nameInput)}`;
+    });
+
+    // Press Enter to submit join form
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('btn-join').click();
+      }
+    });
+  </script>
+</body>
+</html>

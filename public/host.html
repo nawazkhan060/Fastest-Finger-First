@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Panel - Fastest Finger First</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Custom Host Layout adjustment */
+    .host-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1.8fr;
+      gap: 30px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    @media (max-width: 900px) {
+      .host-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="host-layout">
+    <!-- Left Column: Game Code Card only -->
+    <div class="container scale-up" style="padding: 25px; height: fit-content;">
+      <h2 class="cyan-text" style="margin-bottom: 20px;">Host Controller</h2>
+      
+      <!-- Game Code Card -->
+      <div class="glass-panel" style="text-align: center; padding: 15px; margin-bottom: 0;">
+        <span style="font-size: 14px; text-transform: uppercase; color: var(--text-secondary);">Share this Game Code</span>
+        <div>
+          <span id="game-code-display" class="game-code-display">----</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 5px;">
+          Max 7 players. Wait for players to join before starting!
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Column: Live Screen (Lobby, Active Play, Leaderboard) -->
+    <div class="container scale-up" style="padding: 30px;">
+      <!-- LOBBY STATE -->
+      <div id="state-lobby">
+        <h2 class="gold-text" style="margin-bottom: 10px;">Players Lobby (<span id="player-count">0</span>/7)</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Players joined will appear here in real-time.</p>
+        
+        <!-- Grid of 7 player slots -->
+        <div class="players-grid">
+          <div class="player-slot empty" id="slot-0">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 1</span>
+          </div>
+          <div class="player-slot empty" id="slot-1">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 2</span>
+          </div>
+          <div class="player-slot empty" id="slot-2">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 3</span>
+          </div>
+          <div class="player-slot empty" id="slot-3">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 4</span>
+          </div>
+          <div class="player-slot empty" id="slot-4">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 5</span>
+          </div>
+          <div class="player-slot empty" id="slot-5">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 6</span>
+          </div>
+          <div class="player-slot empty" id="slot-6">
+            <span class="player-avatar">👤</span>
+            <span class="player-name">Slot 7</span>
+          </div>
+        </div>
+
+        <button id="btn-start-game" class="btn btn-primary pulse-glow" disabled style="margin-bottom: 30px;">Launch Question</button>
+
+        <!-- Question Selector (Moved below Launch Question) -->
+        <div id="question-bank-section" style="border-top: 1px solid var(--border-glow); padding-top: 25px;">
+          <h3 class="gold-text" style="font-size: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Select Question to Launch</span>
+            <button id="btn-add-custom" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-top: 0; width: auto;">+ Add Custom</button>
+          </h3>
+          
+          <div id="questions-list" class="questions-list" style="max-height: 180px;">
+            <p style="color: var(--text-secondary); font-size: 14px; text-align: center; padding: 20px;">Loading questions...</p>
+          </div>
+
+          <div id="selected-question-preview" class="glass-panel" style="display: none; padding: 15px; margin-bottom: 0;">
+            <h4 style="font-size: 14px; color: var(--color-cyan); margin-bottom: 8px;">Question Preview</h4>
+            <p id="preview-text" style="font-size: 14px; font-weight: 600; margin-bottom: 10px;"></p>
+            <h4 style="font-size: 12px; color: var(--color-gold); margin-bottom: 5px;">Correct Order</h4>
+            <div id="preview-order" style="font-size: 13px; font-weight: 800; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE STATE -->
+      <div id="state-active" style="display: none;">
+        <h2 class="cyan-text" style="text-align: center; margin-bottom: 20px;">Question In Progress</h2>
+        <div class="glass-panel" style="text-align: center; padding: 25px;">
+          <h3 id="active-question-text" class="question-header">-- Question Text Here --</h3>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-text" id="timer-display">15.00s</div>
+        <div class="timer-container">
+          <div class="timer-bar" id="timer-bar" style="width: 100%;"></div>
+        </div>
+
+        <!-- Submission Status Grid -->
+        <div style="margin-top: 30px;">
+          <h4 style="color: var(--text-secondary); text-transform: uppercase; font-size: 13px; margin-bottom: 12px; text-align: center;">Player Submissions</h4>
+          <div class="players-grid" id="active-players-status">
+            <!-- Dynamically populated or updating existing slots -->
+          </div>
+        </div>
+
+        <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr; gap: 15px;">
+          <button id="btn-end-question" class="btn btn-danger">End Question & Show Leaderboard</button>
+        </div>
+      </div>
+
+      <!-- RESULTS / LEADERBOARD STATE -->
+      <div id="state-results" style="display: none;">
+        <h2 class="gold-text" style="text-align: center; margin-bottom: 15px;">Leaderboard 🏆</h2>
+        
+        <!-- Correct Order Reveal Box -->
+        <div class="correct-order-box">
+          <span style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase;">Correct Answer Sequence</span>
+          <div id="correct-sequence-display" class="correct-order-flow">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+
+        <div class="leaderboard-list" id="leaderboard-list">
+          <!-- Filled dynamically -->
+        </div>
+
+        <button id="btn-next-round" class="btn btn-primary">Prepare Next Question</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="credits-footer">
+    Developed By <strong>Nawaz Khan</strong>
+  </div>
+
+  <!-- Custom Question Modal -->
+  <div id="custom-modal" class="modal">
+    <div class="modal-content scale-up">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <h2 class="gold-text" style="margin-bottom: 20px;">Create Custom Question</h2>
+      
+      <div class="form-group">
+        <label for="custom-question-text">Question Prompt</label>
+        <input type="text" id="custom-question-text" placeholder="e.g. Arrange the following months in calendar order.">
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+        <div class="form-group">
+          <label>Item 1 (Correct 1st)</label>
+          <input type="text" class="custom-item-input" id="item-0" placeholder="e.g. January">
+        </div>
+        <div class="form-group">
+          <label>Item 2 (Correct 2nd)</label>
+          <input type="text" class="custom-item-input" id="item-1" placeholder="e.g. April">
+        </div>
+        <div class="form-group">
+          <label>Item 3 (Correct 3rd)</label>
+          <input type="text" class="custom-item-input" id="item-2" placeholder="e.g. August">
+        </div>
+        <div class="form-group">
+          <label>Item 4 (Correct 4th)</label>
+          <input type="text" class="custom-item-input" id="item-3" placeholder="e.g. December">
+        </div>
+      </div>
+      
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">
+        Note: The items will automatically be shuffled when shown to players. Specify them here in their <strong>correct chronological/alphabetical/ascending order</strong>.
+      </p>
+
+      <button id="btn-save-custom" class="btn btn-primary">Save & Add to Bank</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="host.js"></script>
+</body>
+</html>

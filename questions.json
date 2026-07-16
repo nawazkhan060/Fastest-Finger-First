@@ -1,0 +1,32 @@
+[
+  {
+    "id": "q1",
+    "text": "Arrange the following abbreviations alphabetically.",
+    "items": ["PAN", "ATM", "RBI", "GST"],
+    "correctOrder": ["ATM", "GST", "PAN", "RBI"]
+  },
+  {
+    "id": "q2",
+    "text": "Arrange the following days of the week in chronological order.",
+    "items": ["Wednesday", "Sunday", "Monday", "Friday"],
+    "correctOrder": ["Monday", "Wednesday", "Friday", "Sunday"]
+  },
+  {
+    "id": "q3",
+    "text": "Arrange the following months in calendar order.",
+    "items": ["December", "April", "January", "August"],
+    "correctOrder": ["January", "April", "August", "December"]
+  },
+  {
+    "id": "q4",
+    "text": "Arrange the following numbers in ascending order.",
+    "items": ["75", "100", "25", "50"],
+    "correctOrder": ["25", "50", "75", "100"]
+  },
+  {
+    "id": "q5",
+    "text": "Arrange the following colours in the order they appear in a rainbow.",
+    "items": ["Green", "Red", "Blue", "Yellow"],
+    "correctOrder": ["Red", "Yellow", "Green", "Blue"]
+  }
+]

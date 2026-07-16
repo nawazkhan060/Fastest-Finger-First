@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Screen - Fastest Finger First</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container scale-up" style="max-width: 600px;">
+    <!-- PLAYER INFO BAR -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glow); padding-bottom: 15px; margin-bottom: 25px;">
+      <div>
+        <span style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase;">Player Name</span>
+        <h3 id="player-profile-name" class="gold-text">----</h3>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase;">Game Code</span>
+        <h3 id="player-profile-code" class="cyan-text">----</h3>
+      </div>
+    </div>
+
+    <!-- LOBBY SCREEN -->
+    <div id="screen-lobby">
+      <h2 class="cyan-text" style="text-align: center; margin-bottom: 15px;">Waiting for Host... ⏳</h2>
+      <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">
+        The game will start as soon as the host launches a question. Get ready!
+      </p>
+
+      <h4 style="color: var(--color-gold); text-transform: uppercase; font-size: 13px; margin-bottom: 12px; text-align: center;">Joined Players</h4>
+      <div class="players-grid" id="lobby-players-grid">
+        <!-- Dynamically filled with player slots (up to 7) -->
+      </div>
+    </div>
+
+    <!-- ACTIVE QUESTION WORKSPACE -->
+    <div id="screen-active" style="display: none;">
+      <div class="timer-text" id="player-timer-display">15.00s</div>
+      <div class="timer-container" style="margin-top: -10px;">
+        <div class="timer-bar" id="player-timer-bar" style="width: 100%;"></div>
+      </div>
+
+      <div class="glass-panel" style="text-align: center; padding: 20px; margin-bottom: 25px;">
+        <h3 id="player-question-text" class="question-header" style="margin-bottom: 0;">-- Question Text --</h3>
+      </div>
+
+      <div class="arrange-container">
+        <!-- Slots for selection order -->
+        <div>
+          <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 8px;">Your Arrange Order (Click to clear)</span>
+          <div class="slots-container">
+            <div class="sequence-slot" id="slot-btn-0" data-index="1st"></div>
+            <div class="sequence-slot" id="slot-btn-1" data-index="2nd"></div>
+            <div class="sequence-slot" id="slot-btn-2" data-index="3rd"></div>
+            <div class="sequence-slot" id="slot-btn-3" data-index="4th"></div>
+          </div>
+        </div>
+
+        <!-- Options grid -->
+        <div>
+          <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 8px;">Tap Options in Order</span>
+          <div class="options-grid" id="options-grid">
+            <!-- Dynamically populated option cards -->
+          </div>
+        </div>
+
+        <button id="btn-submit-answer" class="btn btn-primary pulse-glow" disabled>Submit Sequence</button>
+      </div>
+    </div>
+
+    <!-- SUBMISSION CONFIRMED / WAITING SCREEN -->
+    <div id="screen-waiting" style="display: none; text-align: center; padding: 30px 0;">
+      <div class="logo-icon" style="font-size: 54px; margin-bottom: 15px;">🚀</div>
+      <h2 class="cyan-text" style="margin-bottom: 10px;">Submission Locked!</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">
+        You submitted in <strong id="locked-time-display" class="gold-text">0.00s</strong>.
+      </p>
+      <div class="glass-panel" style="padding: 15px; display: inline-block; width: 100%;">
+        <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 5px;">Your submitted sequence</span>
+        <div id="waiting-submitted-seq" class="correct-order-flow" style="margin-top: 5px;">
+          <!-- sequence items display -->
+        </div>
+      </div>
+      <p style="color: var(--text-secondary); font-size: 14px; margin-top: 25px;">
+        Waiting for other players to submit or host to show results...
+      </p>
+    </div>
+
+    <!-- LEADERBOARD / RESULTS SCREEN -->
+    <div id="screen-results" style="display: none;">
+      <!-- Timing Display -->
+      <div class="glass-panel" style="text-align: center; padding: 20px; margin-bottom: 20px;">
+        <span style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 8px;">Your Completion Time</span>
+        <h2 id="personal-time-display" class="gold-text" style="font-size: 32px; text-shadow: 0 0 10px var(--color-gold-glow);">--</h2>
+      </div>
+
+      <!-- Correct Order Reveal Box -->
+      <div class="correct-order-box">
+        <span style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase;">Correct Answer Sequence</span>
+        <div id="player-correct-sequence" class="correct-order-flow">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <p style="color: var(--text-secondary); text-align: center; font-size: 13px; margin-top: 30px;">
+        Wait for host to prepare the next round.
+      </p>
+    </div>
+  </div>
+
+  <div class="credits-footer">
+    Developed By <strong>Nawaz Khan</strong>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
