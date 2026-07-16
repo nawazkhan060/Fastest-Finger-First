@@ -33,10 +33,10 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   overflow-x: hidden;
-  padding: 20px;
+  padding: 30px 20px;
 }
 
 /* Header & Typography */
@@ -661,24 +661,24 @@ input[type="text"]:focus, select:focus {
 
 .logo-container {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .logo-icon {
-  font-size: 64px;
-  margin-bottom: 10px;
+  font-size: 32px;
+  margin-bottom: 4px;
   display: inline-block;
   animation: float 4s ease-in-out infinite;
 }
 
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-6px); }
   100% { transform: translateY(0px); }
 }
 
 .logo-title {
-  font-size: 36px;
+  font-size: 20px;
   font-weight: 800;
   background: linear-gradient(135deg, var(--color-gold) 30%, var(--color-cyan) 100%);
   -webkit-background-clip: text;
@@ -775,4 +775,87 @@ input[type="text"]:focus, select:focus {
 
 .sequence-slot:hover {
   border-color: var(--color-cyan-glow);
+}
+
+/* App Header Styling */
+.app-header {
+  width: 100%;
+  max-width: 1300px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  margin-bottom: 25px;
+  background: rgba(18, 14, 46, 0.4);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-sizing: border-box;
+  gap: 70px;
+}
+
+.header-logo-left, .header-logo-middle, .header-logo-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-left img {
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.3));
+  transition: all 0.3s ease;
+}
+
+.header-logo-middle img {
+  height: 85px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.header-logo-right img {
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.3));
+  transition: all 0.3s ease;
+}
+
+.header-logo-left img:hover, .header-logo-middle img:hover, .header-logo-right img:hover {
+  transform: scale(1.08);
+}
+
+/* Adjustments for smaller screens */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 8px 16px;
+    margin-bottom: 15px;
+    gap: 10px;
+  }
+  .header-logo-left img {
+    height: 48px;
+  }
+  .header-logo-middle img {
+    height: 58px;
+  }
+  .header-logo-right img {
+    height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 6px 12px;
+  }
+  .header-logo-left img {
+    height: 36px;
+  }
+  .header-logo-middle img {
+    height: 42px;
+  }
+  .header-logo-right img {
+    height: 36px;
+  }
 }
