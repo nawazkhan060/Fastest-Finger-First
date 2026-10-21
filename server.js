@@ -116,7 +116,7 @@ io.on('connection', (socket) => {
       code,
       hostSocketId: socket.id,
       state: 'LOBBY', // LOBBY, QUESTION_ACTIVE, QUESTION_ENDED
-      players: [], // Max 7 players
+      players: [], // Exactly 8 players required to start
       currentQuestion: null,
       questionStartTime: null,
       questionEndTime: null,
@@ -139,6 +139,11 @@ io.on('connection', (socket) => {
     const question = questions.find(q => q.id === questionId);
     if (!question) {
       return socket.emit('error', 'Question not found');
+    }
+
+    // Require all 8 players to be connected before starting
+    if (game.players.length < 8) {
+      return socket.emit('error', `Cannot start yet: Waiting for all 8 players to connect (${game.players.length}/8 connected).`);
     }
 
     // Scramble items for players (make sure they don't get the correct order directly)
@@ -251,9 +256,9 @@ io.on('connection', (socket) => {
       return socket.emit('join:failed', 'Game has already started. Cannot join now.');
     }
 
-    // Limit to 7 players
-    if (game.players.length >= 7) {
-      return socket.emit('join:failed', 'Game is full! Maximum 7 players allowed.');
+    // Limit to 8 players
+    if (game.players.length >= 8) {
+      return socket.emit('join:failed', 'Game is full! Maximum 8 players allowed.');
     }
 
     // Check duplicate name
