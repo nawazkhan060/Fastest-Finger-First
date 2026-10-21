@@ -22,9 +22,15 @@ const screenWaiting = document.getElementById('screen-waiting');
 const screenResults = document.getElementById('screen-results');
 
 const lobbyPlayersGrid = document.getElementById('lobby-players-grid');
+const lobbyCountPill = document.getElementById('lobby-count-pill');
+const lobbyProgressFill = document.getElementById('lobby-progress-fill');
+const lobbyStatusMessage = document.getElementById('lobby-status-message');
+const lobbySlotsRemaining = document.getElementById('lobby-slots-remaining');
+
 const playerQuestionText = document.getElementById('player-question-text');
 const optionsGrid = document.getElementById('options-grid');
 const btnSubmitAnswer = document.getElementById('btn-submit-answer');
+const btnClearSequence = document.getElementById('btn-clear-sequence');
 const playerTimerDisplay = document.getElementById('player-timer-display');
 const playerTimerBar = document.getElementById('player-timer-bar');
 
@@ -32,6 +38,11 @@ const lockedTimeDisplay = document.getElementById('locked-time-display');
 const waitingSubmittedSeq = document.getElementById('waiting-submitted-seq');
 
 const playerCorrectSequence = document.getElementById('player-correct-sequence');
+const personalTimeDisplay = document.getElementById('personal-time-display');
+const personalStatusTag = document.getElementById('personal-status-tag');
+
+const STEP_LABELS = ['1st', '2nd', '3rd', '4th'];
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
 // Initial validation
 if (!playerName || !gameCode) {
@@ -61,27 +72,64 @@ socket.on('game:lobby-update', ({ players }) => {
 });
 
 function renderLobbyPlayers(players) {
+  const count = players.length;
+  const remaining = Math.max(0, 8 - count);
+  
+  if (lobbyCountPill) {
+    lobbyCountPill.textContent = `${count}/8 Connected`;
+    lobbyCountPill.className = count >= 8 ? 'status-pill status-ready' : 'status-pill status-waiting';
+  }
+  
+  if (lobbyProgressFill) {
+    lobbyProgressFill.style.width = `${(count / 8) * 100}%`;
+  }
+  
+  if (lobbySlotsRemaining) {
+    lobbySlotsRemaining.textContent = remaining === 0 
+      ? 'All spots filled! Ready' 
+      : `${remaining} spot${remaining > 1 ? 's' : ''} remaining`;
+  }
+
+  if (lobbyStatusMessage) {
+    if (count < 8) {
+      lobbyStatusMessage.textContent = `Waiting for ${remaining} more player${remaining > 1 ? 's' : ''} to connect. The game will only start once all 8 seats are filled!`;
+    } else {
+      lobbyStatusMessage.textContent = 'All 8 players are connected! Get ready, the host can launch the question at any moment!';
+    }
+  }
+
   lobbyPlayersGrid.innerHTML = '';
-  // Show up to 7 slots
-  for (let i = 0; i < 7; i++) {
+  // Show up to 8 slots
+  for (let i = 0; i < 8; i++) {
     const slot = document.createElement('div');
     if (i < players.length) {
       const p = players[i];
-      slot.className = 'player-slot active';
-      if (p.id === socket.id) slot.style.borderColor = 'var(--color-cyan)';
+      const isMe = p.id === socket.id;
+      slot.className = `player-slot active ${isMe ? 'is-current-user' : ''}`;
+      
+      const initial = p.name ? p.name.charAt(0).toUpperCase() : `${i + 1}`;
       slot.innerHTML = `
-        <span class="player-avatar">⚡</span>
-        <span class="player-name">${p.name}</span>
+        <span class="player-avatar">${initial}</span>
+        <span class="player-name">${escapeHtml(p.name)}</span>
+        ${isMe ? '<span class="you-badge">YOU</span>' : ''}
       `;
     } else {
       slot.className = 'player-slot empty';
       slot.innerHTML = `
-        <span class="player-avatar">👤</span>
+        <span class="player-avatar">${i + 1}</span>
         <span class="player-name">Slot ${i + 1}</span>
       `;
     }
     lobbyPlayersGrid.appendChild(slot);
   }
+}
+
+// Clear Sequence button listener
+if (btnClearSequence) {
+  btnClearSequence.addEventListener('click', () => {
+    selectedSequence = [null, null, null, null];
+    renderWorkspace();
+  });
 }
 
 // Question starts
@@ -102,38 +150,58 @@ socket.on('game:question-started', ({ text, items, duration }) => {
 
 // Render workspace interface
 function renderWorkspace() {
-  // Render empty sequence slots
+  const filledCount = selectedSequence.filter(item => item !== null).length;
+
+  // Render sequence slots
   for (let i = 0; i < 4; i++) {
     const slot = document.getElementById(`slot-btn-${i}`);
-    slot.innerHTML = '';
-    slot.className = 'sequence-slot';
+    if (!slot) continue;
     
-    if (selectedSequence[i]) {
-      slot.textContent = selectedSequence[i];
-      slot.classList.add('filled');
-      
-      // Click a filled slot to remove it
+    const value = selectedSequence[i];
+    slot.innerHTML = '';
+    
+    if (value) {
+      slot.className = 'sequence-slot filled';
+      slot.innerHTML = `
+        <span class="slot-badge">${STEP_LABELS[i]}</span>
+        <span class="slot-content">${escapeHtml(value)}</span>
+        <span class="slot-remove" title="Remove">&times;</span>
+      `;
       slot.onclick = () => removeOptionFromSequence(i);
     } else {
+      slot.className = 'sequence-slot';
+      slot.innerHTML = `
+        <span class="slot-badge">${STEP_LABELS[i]}</span>
+        <span class="slot-content empty-hint">Tap item</span>
+      `;
       slot.onclick = null;
     }
   }
 
   // Render raw options grid
   optionsGrid.innerHTML = '';
-  rawOptions.forEach(option => {
+  rawOptions.forEach((option, idx) => {
     const card = document.createElement('div');
     card.className = 'option-card';
-    card.textContent = option;
 
+    const letter = OPTION_LETTERS[idx] || `${idx + 1}`;
     const selectIdx = selectedSequence.indexOf(option);
-    if (selectIdx !== -1) {
+    const isSelected = selectIdx !== -1;
+
+    if (isSelected) {
       card.classList.add('selected');
-      const badge = document.createElement('span');
-      badge.className = 'badge';
-      badge.textContent = selectIdx + 1;
-      card.appendChild(badge);
+      card.innerHTML = `
+        <span class="option-letter">${letter}</span>
+        <span class="option-title">${escapeHtml(option)}</span>
+        <span class="badge selected-step-badge">#${selectIdx + 1}</span>
+      `;
+      // Tapping a selected option allows removing it
+      card.onclick = () => removeOptionFromSequence(selectIdx);
     } else {
+      card.innerHTML = `
+        <span class="option-letter">${letter}</span>
+        <span class="option-title">${escapeHtml(option)}</span>
+      `;
       card.onclick = () => addOptionToSequence(option);
     }
 
@@ -141,8 +209,16 @@ function renderWorkspace() {
   });
 
   // Enable submit button only if all 4 slots are filled
-  const isComplete = selectedSequence.every(item => item !== null);
+  const isComplete = filledCount === 4;
   btnSubmitAnswer.disabled = !isComplete;
+  
+  if (isComplete) {
+    btnSubmitAnswer.classList.add('pulse-glow');
+    btnSubmitAnswer.textContent = 'LOCK SEQUENCE NOW';
+  } else {
+    btnSubmitAnswer.classList.remove('pulse-glow');
+    btnSubmitAnswer.textContent = `Select 4 items in order (${filledCount}/4)`;
+  }
 }
 
 function addOptionToSequence(option) {
@@ -155,8 +231,7 @@ function addOptionToSequence(option) {
 
 function removeOptionFromSequence(index) {
   selectedSequence[index] = null;
-  // Shift remaining elements left to maintain solid fill
-  // e.g. if we remove index 1 from [A, B, C, null], it becomes [A, null, C, null] -> shift to [A, C, null, null]
+  // Shift remaining elements left to maintain continuous sequence
   selectedSequence = selectedSequence.filter(item => item !== null);
   while (selectedSequence.length < 4) {
     selectedSequence.push(null);
@@ -181,7 +256,7 @@ function startTimer(duration) {
     playerTimerDisplay.textContent = `${remainingSecs}s`;
     playerTimerBar.style.width = `${(remaining / totalMs) * 100}%`;
     
-    if (remaining < 10000) {
+    if (remaining < 5000) {
       playerTimerDisplay.classList.add('warning');
       playerTimerBar.classList.add('warning');
     } else {
@@ -203,6 +278,9 @@ btnSubmitAnswer.addEventListener('click', () => {
   
   const timeTaken = Date.now() - questionStartTime;
   
+  // Disable button to prevent double submits
+  btnSubmitAnswer.disabled = true;
+
   // Emit to server
   socket.emit('player:submit', { code: gameCode, order: selectedSequence });
 
@@ -218,7 +296,7 @@ btnSubmitAnswer.addEventListener('click', () => {
     if (index < selectedSequence.length - 1) {
       const arrow = document.createElement('span');
       arrow.className = 'arrow';
-      arrow.innerHTML = ' → ';
+      arrow.textContent = ' → ';
       waitingSubmittedSeq.appendChild(arrow);
     }
   });
@@ -239,15 +317,30 @@ socket.on('game:question-ended', ({ leaderboard, correctOrder }) => {
 
   // Personal feedback check
   const myRecord = leaderboard.find(p => p.id === socket.id);
-  const personalTimeDisplay = document.getElementById('personal-time-display');
   
   if (myRecord) {
     if (myRecord.noSubmission) {
       personalTimeDisplay.textContent = 'No Answer';
       personalTimeDisplay.style.color = 'var(--color-red)';
+      if (personalStatusTag) {
+        personalStatusTag.className = 'status-pill status-incorrect';
+        personalStatusTag.textContent = 'Time Expired';
+      }
     } else {
       personalTimeDisplay.textContent = `${(myRecord.timeTaken / 1000).toFixed(2)}s`;
-      personalTimeDisplay.style.color = 'var(--color-gold)';
+      if (myRecord.correct) {
+        personalTimeDisplay.style.color = 'var(--color-gold)';
+        if (personalStatusTag) {
+          personalStatusTag.className = 'status-pill status-ready';
+          personalStatusTag.textContent = 'Correct Order!';
+        }
+      } else {
+        personalTimeDisplay.style.color = 'var(--color-red)';
+        if (personalStatusTag) {
+          personalStatusTag.className = 'status-pill status-incorrect';
+          personalStatusTag.textContent = 'Incorrect Order';
+        }
+      }
     }
   }
 
@@ -261,7 +354,7 @@ socket.on('game:question-ended', ({ leaderboard, correctOrder }) => {
     if (index < correctOrder.length - 1) {
       const arrow = document.createElement('span');
       arrow.className = 'arrow';
-      arrow.innerHTML = ' → ';
+      arrow.textContent = ' → ';
       playerCorrectSequence.appendChild(arrow);
     }
   });
@@ -281,3 +374,14 @@ socket.on('game:host-disconnected', () => {
   alert('Host disconnected. Game ended.');
   window.location.href = '/';
 });
+
+// Utility to escape HTML preventing XSS
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

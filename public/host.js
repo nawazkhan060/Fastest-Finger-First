@@ -91,10 +91,30 @@ function renderQuestionsList(questions) {
 }
 
 function checkLaunchButtonStatus() {
-  if (selectedQuestionId && currentPlayers.length > 0) {
-    btnStartGame.disabled = false;
-  } else {
+  const statusPill = document.getElementById('lobby-status-pill');
+  if (currentPlayers.length < 8) {
     btnStartGame.disabled = true;
+    btnStartGame.classList.remove('pulse-glow');
+    const remaining = 8 - currentPlayers.length;
+    btnStartGame.textContent = `Waiting for ${remaining} More Player${remaining > 1 ? 's' : ''} (${currentPlayers.length}/8)`;
+    if (statusPill) {
+      statusPill.className = 'status-pill status-waiting';
+      statusPill.textContent = `${currentPlayers.length}/8 Connected`;
+    }
+  } else {
+    if (statusPill) {
+      statusPill.className = 'status-pill status-ready';
+      statusPill.textContent = 'All 8 Players Connected!';
+    }
+    if (!selectedQuestionId) {
+      btnStartGame.disabled = true;
+      btnStartGame.classList.remove('pulse-glow');
+      btnStartGame.textContent = 'Select a Question to Launch';
+    } else {
+      btnStartGame.disabled = false;
+      btnStartGame.classList.add('pulse-glow');
+      btnStartGame.textContent = 'Launch Question (All 8 Ready)';
+    }
   }
 }
 
@@ -107,18 +127,19 @@ socket.on('game:lobby-update', ({ players }) => {
 });
 
 function updatePlayersGrid(players) {
-  // Clear and reset slots up to 7
-  for (let i = 0; i < 7; i++) {
+  // Clear and reset slots up to 8
+  for (let i = 0; i < 8; i++) {
     const slot = document.getElementById(`slot-${i}`);
+    if (!slot) continue;
     if (i < players.length) {
       const p = players[i];
       slot.className = 'player-slot active';
       if (p.answered) slot.classList.add('answered');
-      slot.querySelector('.player-avatar').textContent = '⚡';
+      slot.querySelector('.player-avatar').textContent = p.name ? p.name.charAt(0).toUpperCase() : `${i + 1}`;
       slot.querySelector('.player-name').textContent = p.name;
     } else {
       slot.className = 'player-slot empty';
-      slot.querySelector('.player-avatar').textContent = '👤';
+      slot.querySelector('.player-avatar').textContent = `${i + 1}`;
       slot.querySelector('.player-name').textContent = `Slot ${i + 1}`;
     }
   }
@@ -146,7 +167,7 @@ socket.on('game:question-started', ({ text, items, duration }) => {
     div.className = 'player-slot active';
     div.id = `active-p-${p.id}`;
     div.innerHTML = `
-      <span class="player-avatar">👤</span>
+      <span class="player-avatar">${p.name ? p.name.charAt(0).toUpperCase() : 'P'}</span>
       <span class="player-name">${p.name}</span>
     `;
     activePlayersStatus.appendChild(div);
@@ -243,7 +264,7 @@ socket.on('game:question-ended', ({ leaderboard, correctOrder }) => {
     item.className = `leaderboard-item ${player.correct ? 'correct' : 'incorrect'}`;
     
     const rankClass = index < 3 ? `rank-${index + 1}` : '';
-    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+    const badgeHtml = index === 0 ? '<span class="winner-badge">Winner</span>' : '';
     
     let timeText = '';
     if (player.noSubmission) {
@@ -258,7 +279,7 @@ socket.on('game:question-ended', ({ leaderboard, correctOrder }) => {
     item.innerHTML = `
       <div class="rank ${rankClass}">${index + 1}</div>
       <div class="item-name">
-        <div>${player.name} ${medal}</div>
+        <div>${player.name} ${badgeHtml}</div>
         <div class="item-order">${player.orderStr}</div>
       </div>
       <div class="item-meta">
@@ -353,6 +374,10 @@ btnSaveCustom.addEventListener('click', async () => {
   } catch (err) {
     alert('Server communication error.');
   }
+});
+
+socket.on('error', (err) => {
+  alert(err);
 });
 
 socket.on('game:host-disconnected', () => {
